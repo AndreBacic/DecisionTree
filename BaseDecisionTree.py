@@ -21,7 +21,7 @@ class Branch():
 
     Valid types for self.l and self.r are Branch or Leaf.
     """
-    def __init__(self, decision_func: function) -> None:
+    def __init__(self, decision_func: 'function') -> None:
         self.l: 'Branch' or 'Leaf' = None
         self.r: 'Branch' or 'Leaf' = None
         self.decision_func = decision_func

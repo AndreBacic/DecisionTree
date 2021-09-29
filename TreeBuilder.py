@@ -70,7 +70,7 @@ class DecisionTreeBuilder:
                 primary_label = i[self.label_name]
         
         if len(counted_labels.keys()) == 1:
-            return True, counted_labels.keys()[0]
+            return True, primary_label
 
         return False, primary_label
 
@@ -115,6 +115,9 @@ class DecisionTreeBuilder:
 
 
     def calculate_gini_impurity(self, input: List) -> float:
+        """
+        Returns the Gini impurity of input (0 means all of the items are the same, > 0.5 is pretty mixed)
+        """
         # return 1 - Sum from i=1 to n of (Probability(Xi)**2)
         if not input: return 0.0
 
