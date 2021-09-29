@@ -1,58 +1,80 @@
-
-# TODO: Create a class to make a decision tree based on a data set 
-# and then save it to a new .py file as a class extending BaseDecisionTree
-
-
 from BaseDecisionTree import *
 from typing import Dict, List, Tuple
 import uuid
 
 class DecisionTreeBuilder:
-    def __init__(self, max_depth: int = 9999, min_node_size: int = 1) -> None:
+    """
+    Makes a decision tree based on a data set 
+    and then saves it to a new .py file as a class extending BaseDecisionTree
+    """
+    def __init__(self, max_depth: int = 9999, min_node_size: int = 1, label_name = "LABEL") -> None:
         self.max_depth = abs(max_depth)
-        self.min_node_size = abs(min_node_size) # TODO: finish this class
+        self.min_node_size = abs(min_node_size)
+        self.label_name = label_name
 
-    def buildTree(self, data_set: List[Dict], tree_name: str = "DecisionTreeModel", label_name = "LABEL") -> 'BaseDecisionTree':
+    def build_tree(self, data_set: List[Dict], tree_name: str = "DecisionTreeModel") -> 'BaseDecisionTree':
         tree = BaseDecisionTree(None, dict, f"{tree_name}{uuid.uuid4()}")
         # TODO: 1) Add fields (key-value pairs) for combined basic fields
         # Not yet implemented
         expandedDataSet = list(data_set)
         # 2) recursively build branches or leaves based on best fit
-        tree.root = self.buildBranch(expandedDataSet, 1, label_name)
+        tree.root = self.build_branch(expandedDataSet, 1)
 
         return tree
 
-    def buildBranch(self, data_set: List[Dict], depth: int, label_name = "LABEL") -> 'Branch' or 'Leaf':
-        # TODO: 1) check that all labels are different
+    def build_branch(self, data_set: List[Dict], depth: int) -> 'Branch' or 'Leaf':
+        # 1) check that all labels are different
+        labels_are_same, primary_label = self.check_labels(data_set)
         if labels_are_same or depth >= self.max_depth or len(data_set) < self.min_node_size:
             return Leaf(primary_label)
 
-        # TODO: 2) Find best field to split on and what value of it to split by        
+        # 2) Find best field to split on and what value of it to split by        
         max_gain = 0
         for field in data_set[0].keys():
-            if field == label_name:
+            if field == self.label_name:
                 continue
             data_set.sort(key = lambda x: x.get(field))
             properties = map(lambda x: x[field], data_set)
-            labels = map(lambda x: x[label_name], data_set)
+            labels = map(lambda x: x[self.label_name], data_set)
             gain, split_point = self.calculate_max_gini_gain(labels, properties)
             if gain > max_gain:
                 max_gain = gain
                 value_to_split_by = split_point
                 field_to_split_by = field
 
-        # TODO: 3) Perform the decision split
+        # 3) Perform the decision split
         left_data_set, right_data_set = self.split_data(data_set, field_to_split_by, value_to_split_by)
 
-        # TODO: 4) Create new Branch
+        # 4) Create new Branch
         new_branch = Branch(lambda x: x[field_to_split_by] <= value_to_split_by)
 
-        # TODO: 5) Recursively build new branches
+        # 5) Recursively build new branches
         depth+=1
-        new_branch.l = self.buildBranch(left_data_set, depth)
-        new_branch.r = self.buildBranch(right_data_set, depth)
+        new_branch.l = self.build_branch(left_data_set, depth)
+        new_branch.r = self.build_branch(right_data_set, depth)
 
         return new_branch
+
+    def check_labels(self, data_set: List[Dict]) -> Tuple[bool, str]:
+        counted_labels = dict()
+        primary_label = None
+        primary_label_count = 0
+        for i in data_set:
+            if counted_labels.get(i[self.label_name]):
+                counted_labels[i[self.label_name]] += 1
+            else:
+                counted_labels[i[self.label_name]] = 1
+            
+            if counted_labels[i[self.label_name]] > primary_label_count:
+                primary_label_count = counted_labels[i[self.label_name]]
+                primary_label = i[self.label_name]
+        
+        if len(counted_labels.keys()) == 1:
+            return True, counted_labels.keys()[0]
+
+        return False, primary_label
+
+        
 
     def split_data(self, data_set: List[Dict], field_to_split_by: str, value_to_split_by) -> Tuple[List[Dict], List[Dict]]:
         left = []

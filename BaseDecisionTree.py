@@ -1,33 +1,33 @@
 
 class BaseDecisionTree(object):
     """
-    A decision tree that classifies objects of type supportedDataType
+    A decision tree that classifies objects of type supported_data_type
     """
-    def __init__(self, root: 'Branch', supportedDataType: type, name: str = "DecisionTreeModel") -> None:
+    def __init__(self, root: 'Branch', supported_data_type: type, name: str = "DecisionTreeModel") -> None:
         self.root = root
-        self.supportedDataType = supportedDataType
+        self.supported_data_type = supported_data_type
         self.name = name
     
     def classify(self, obj):
-        if not isinstance(obj, self.supportedDataType): return None
+        if not isinstance(obj, self.supported_data_type): return None
 
         return self.root.classify(obj)
 
 class Branch():
     """
-    Given a decisionFunc that takes an object and returns a bool, 
+    Given a decision_func that takes an object and returns a bool, 
     a Branch will choose its left node (self.l) if the function returns true, 
     and its right node (self.r) otherwise.
 
     Valid types for self.l and self.r are Branch or Leaf.
     """
-    def __init__(self, decisionFunc: function) -> None:
+    def __init__(self, decision_func: function) -> None:
         self.l: 'Branch' or 'Leaf' = None
         self.r: 'Branch' or 'Leaf' = None
-        self.decisionFunc = decisionFunc
+        self.decision_func = decision_func
 
     def classify(self, obj) -> str:
-        if self.decisionFunc(obj):
+        if self.decision_func(obj):
             return self.l.classify(obj)
         return self.r.classify(obj)
 
