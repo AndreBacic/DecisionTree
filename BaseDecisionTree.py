@@ -3,9 +3,10 @@ class BaseDecisionTree(object):
     """
     A decision tree that classifies objects of type supportedDataType
     """
-    def __init__(self, root: 'Branch', supportedDataType: type) -> None:
+    def __init__(self, root: 'Branch', supportedDataType: type, name: str = "DecisionTreeModel") -> None:
         self.root = root
         self.supportedDataType = supportedDataType
+        self.name = name
     
     def classify(self, obj):
         if not isinstance(obj, self.supportedDataType): return None
