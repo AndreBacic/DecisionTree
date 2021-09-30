@@ -2,7 +2,7 @@ from BaseDecisionTree import *
 from typing import Dict, List, Tuple
 import uuid
 
-class DecisionTreeBuilder:
+class DecisionTreeBuilder: # TODO: make internal methods private
     """
     Makes a decision tree based on a data set 
     and then saves it to a new .py file as a class extending BaseDecisionTree
@@ -34,8 +34,8 @@ class DecisionTreeBuilder:
             if field == self.label_name:
                 continue
             data_set.sort(key = lambda x: x.get(field))
-            properties = map(lambda x: x[field], data_set)
-            labels = map(lambda x: x[self.label_name], data_set)
+            properties = list(map(lambda x: x[field], data_set))
+            labels = list(map(lambda x: x[self.label_name], data_set))
             gain, split_point = self.calculate_max_gini_gain(labels, properties)
             if gain > max_gain:
                 max_gain = gain
