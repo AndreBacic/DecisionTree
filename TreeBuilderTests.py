@@ -75,4 +75,4 @@ def build_tree_Should_work(): # It works with the old way that returns a BaseDec
 
 writer = DecisionTreeWriter(label_name="species")
 
-writer.build_tree(iris_data)
+writer.build_tree(iris_data, "IrisClassifier")
