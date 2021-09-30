@@ -1,6 +1,7 @@
 # This file if for testing the code in TreeBuilder.py and perhaps any other files that need testing
 
 from TreeBuilder import DecisionTreeBuilder
+from TreeWriter import DecisionTreeWriter
 
 
 builder = DecisionTreeBuilder()
@@ -65,9 +66,13 @@ def check_labels_Should_work():
     data[0]["LABEL"] = "Frog"
     print(builder.check_labels(data), "Should Be", (False, "Frog"))
 
-#check_labels_Should_work()
-builder.label_name = "species"
-tree = builder.build_tree(iris_data, "IrisClassifier")
-print(tree)
-setosa = tree.classify(iris_data[0])
-print(setosa)
+def build_tree_Should_work(): # It works with the old way that returns a BaseDecisionTree object.
+    builder.label_name = "species"
+    tree = builder.build_tree(iris_data, "IrisClassifier")
+    print(tree)
+    setosa = tree.classify(iris_data[0])
+    print(setosa)
+
+writer = DecisionTreeWriter(label_name="species")
+
+writer.build_tree(iris_data)
