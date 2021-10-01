@@ -2,7 +2,8 @@
 
 from TreeBuilder import DecisionTreeBuilder
 from TreeWriter import DecisionTreeWriter
-
+from dinosaur_data import Dinosaurs
+import time
 
 builder = DecisionTreeBuilder()
 
@@ -73,6 +74,7 @@ def build_tree_Should_work(): # It works with the old way that returns a BaseDec
     setosa = tree.classify(iris_data[0])
     print(setosa)
 
-writer = DecisionTreeWriter(label_name="species")
-
-writer.build_tree(iris_data, "IrisClassifier")
+writer = DecisionTreeWriter(label_name="species", min_node_size=1, max_depth=8)
+t = time.time()
+writer.build_tree(Dinosaurs, "DinoClassifyBySpeciesTree")
+print(time.time()-t)

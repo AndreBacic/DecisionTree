@@ -7,7 +7,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
     Makes a decision tree based on a data set 
     and then saves it to a new .py file as a class extending BaseDecisionTree
     """
-    def __init__(self, max_depth: int = 9999, min_node_size: int = 1, label_name = "LABEL") -> None:
+    def __init__(self, max_depth: int = 998, min_node_size: int = 1, label_name = "LABEL") -> None:
         self.max_depth = abs(max_depth)
         self.min_node_size = abs(min_node_size)
         self.label_name = label_name
@@ -39,7 +39,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
     def build_branch(self, data_set: List[Dict], depth: int, branch_chain: str) -> List[str]:
         # 1) check that all labels are different
         labels_are_same, primary_label = self.check_labels(data_set)
-        if labels_are_same or depth >= self.max_depth or len(data_set) < self.min_node_size:
+        if labels_are_same or depth >= self.max_depth or len(data_set) <= self.min_node_size:
             return [f"    tree{branch_chain} = Leaf('{primary_label}')"]
 
         # 2) Find best field to split on and what value of it to split by
@@ -47,7 +47,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
         max_gain = 0
         for field in data_set[0].keys():
-            if field == self.label_name:
+            if field == self.label_name or not type(data_set[0][field]) in [int, float, bool]:
                 continue
             data_set.sort(key = lambda x: x.get(field))
             properties = list(map(lambda x: x[field], data_set))
@@ -121,6 +121,8 @@ class DecisionTreeWriter: # TODO: make internal methods private
         for i, val in enumerate(properties):
             l1.append(l2.pop(0))
             if len(l2) == 0: break
+
+            if val == properties[i+1]: continue
 
             H1 = self.calculate_gini_impurity(l1) * len(l1) / l
             H2 = self.calculate_gini_impurity(l2) * len(l2) / l

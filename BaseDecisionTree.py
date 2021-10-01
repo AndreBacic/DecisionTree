@@ -1,3 +1,5 @@
+from typing import List
+
 
 class BaseDecisionTree(object):
     """
@@ -8,10 +10,20 @@ class BaseDecisionTree(object):
         self.supported_data_type = supported_data_type
         self.name = name
     
-    def classify(self, obj):
+    def classify_one(self, obj) -> str:
         if not isinstance(obj, self.supported_data_type): return None
 
         return self.root.classify(obj)
+
+    def classify_many(self, objects: List['object']) -> List[str]:
+        """
+        Returns a list of (hopefully) correct labels for each item in objects.
+        """
+        labels =[]
+        for item in objects:
+            labels.append(self.classify_one(item))
+        return labels
+
 
 class Branch():
     """
@@ -30,6 +42,7 @@ class Branch():
         if self.decision_func(obj):
             return self.l.classify(obj)
         return self.r.classify(obj)
+
 
 class Leaf():
     """
