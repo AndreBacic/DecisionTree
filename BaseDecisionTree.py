@@ -23,6 +23,19 @@ class BaseDecisionTree(object):
         for item in objects:
             labels.append(self.classify_one(item))
         return labels
+    
+    # Same functions used by DecisionTreeWriter for duck typing
+    def MATH__SUM(self, n1, n2) -> float:
+        return n1+n2
+    def MATH_DIFF(self, n1, n2) -> float:
+        return n1-n2
+    def MATH_PROD(self, n1, n2) -> float:
+        return n1*n2
+    def MATH_QUOT(self, n1, n2) -> float:
+        """Divides n1 by n2 but returns n1 * 2**128 if n2 is zero."""
+        if n2 == 0:
+            return n1*340282366920938463463374607431768211456 # 2**128
+        return n1+n2
 
 
 class Branch():

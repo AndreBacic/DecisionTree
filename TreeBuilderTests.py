@@ -24,17 +24,17 @@ iris_data = [
 
 def calculate_gini_impurity_Should_work(): # It works!
     print("calculate_gini_impurity() output and what it should be")
-    print(builder.__calculate_gini_impurity([0, 0, 0]), "Should Be", 0)
-    print(builder.__calculate_gini_impurity([0, 1]), "Should Be", 0.5)
-    print(builder.__calculate_gini_impurity([0, 0, 0, 1]), "Should Be", 0.375)
-    print(builder.__calculate_gini_impurity([0, 1, 2]), "Should Be", 0.6666667)
-    print(builder.__calculate_gini_impurity([2, 1, 2]), "Should Be", 0.4444444)
+    print(builder.calculate_gini_impurity([0, 0, 0]), "Should Be", 0)
+    print(builder.calculate_gini_impurity([0, 1]), "Should Be", 0.5)
+    print(builder.calculate_gini_impurity([0, 0, 0, 1]), "Should Be", 0.375)
+    print(builder.calculate_gini_impurity([0, 1, 2]), "Should Be", 0.6666667)
+    print(builder.calculate_gini_impurity([2, 1, 2]), "Should Be", 0.4444444)
 
 def calculate_max_gini_gain_Should_work(): # It works!
     print("calculate_max_gini_gain() output and what it should be")
-    print(builder.__calculate_max_gini_gain(["s", "c"], [1, 2]), "Should Be", (0.5, 1.5))
-    print(builder.__calculate_max_gini_gain(["s", "s", "c"], [1, 2, 8]), "Should Be", (0.4444444, 5))
-    print(builder.__calculate_max_gini_gain(["s", "h", "s", "c", "h"], [1, 2, 2, 8, 15]), "Should Be", (0.1733333, 5))
+    print(builder.calculate_max_gini_gain(["s", "c"], [1, 2]), "Should Be", (0.5, 1.5))
+    print(builder.calculate_max_gini_gain(["s", "s", "c"], [1, 2, 8]), "Should Be", (0.4444444, 5))
+    print(builder.calculate_max_gini_gain(["s", "h", "s", "c", "h"], [1, 2, 2, 8, 15]), "Should Be", (0.1733333, 5))
 
 def split_data_Should_work(): # It works!
     data = [{
@@ -47,7 +47,7 @@ def split_data_Should_work(): # It works!
         "s": 2,
         "n": 5
     }]
-    for t in builder.__split_data(data, "s", 2):
+    for t in builder.split_data(data, "s", 2):
         print(t) # good output
 
 def check_labels_Should_work():
@@ -61,11 +61,11 @@ def check_labels_Should_work():
         "s": 2,
         "LABEL": "Snake"
     }]
-    print(builder.__check_labels(data), "Should Be", (True, "Snake"))
+    print(builder.check_labels(data), "Should Be", (True, "Snake"))
     data[2]["LABEL"] = "Frog"
-    print(builder.__check_labels(data), "Should Be", (False, "Snake"))
+    print(builder.check_labels(data), "Should Be", (False, "Snake"))
     data[0]["LABEL"] = "Frog"
-    print(builder.__check_labels(data), "Should Be", (False, "Frog"))
+    print(builder.check_labels(data), "Should Be", (False, "Frog"))
 
 def build_tree_Should_work(): # It works with the old way that returns a BaseDecisionTree object.
     builder.label_name = "species"
@@ -76,5 +76,7 @@ def build_tree_Should_work(): # It works with the old way that returns a BaseDec
 
 writer = DecisionTreeWriter(label_name="species", min_node_size=1, max_depth=8)
 t = time.time()
-writer.build_tree(Dinosaurs, "DinoClassifyBySpeciesTree")
+writer.build_tree(iris_data, True,"IrisCorrelationsTree")
 print(time.time()-t)
+# builder.label_name = "order"
+# builder.build_tree(Dinosaurs)

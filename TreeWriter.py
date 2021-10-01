@@ -1,8 +1,8 @@
 from BaseDecisionTree import *
 from typing import Dict, List, Tuple
-import uuid
+import uuid, math
 
-class DecisionTreeWriter: # TODO: make internal methods private
+class DecisionTreeWriter:
     """
     Makes a decision tree based on a data set 
     and then saves it to a new .py file as a class extending BaseDecisionTree
@@ -12,30 +12,41 @@ class DecisionTreeWriter: # TODO: make internal methods private
         self.min_node_size = abs(min_node_size)
         self.label_name = label_name
 
+        self.supported_field_types = [int, float, bool]
 
-    def build_tree(self, data_set: List[Dict or object], tree_name: str = "DecisionTreeModel") -> None:
+        self.__field_access_prefix = "."
+        self.__field_access_postfix = ""
+
+
+    def build_tree(self, data_set: List[Dict or object], look_for_correlations: bool = True, tree_name: str = "DecisionTreeModel") -> None:
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
         file = ["from BaseDecisionTree import *",
                 "",
-                "# class-like syntax because it acts like its instantiating a class.",
+                "# class-like syntax because it acts like it's instantiating a class.",
                f"def {file_name}() -> 'BaseDecisionTree':",
                 '    """',
                f"    {file_name} has been trained to identify the {self.label_name} of a given dictionary object.",
                 '    """',
                f"    tree = BaseDecisionTree(None, dict, '{file_name}')"]
 
-        # TODO: 1) Add fields (key-value pairs) for combined basic fields
-        # Not yet implemented
-        expandedDataSet = []
+        # 1) Format data_set
+        expanded_data_set = []
 
         if type(data_set[0]) != dict:
-            expandedDataSet = list(map(lambda x: x.__dict__, data_set))
+            expanded_data_set = list(map(lambda x: x.__dict__, data_set))
+            self.__field_access_prefix = "."
+            self.__field_access_postfix = ""
         else:
-            expandedDataSet = list(data_set)
+            expanded_data_set = list(data_set)
+            self.__field_access_prefix = "['"
+            self.__field_access_postfix = "']"
+
+        if look_for_correlations:
+            expanded_data_set = self.find_correlations(expanded_data_set)
 
         # 2) recursively build branches or leaves based on best fit
-        file += self.__build_branch(expandedDataSet, 1, ".root")
+        file += self.__build_branch(expanded_data_set, 1, ".root")
 
         file += ["    ", "    return tree"]
         self.__write_tree_file(file_name, file)
@@ -43,7 +54,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
     def __build_branch(self, data_set: List[Dict], depth: int, branch_chain: str) -> List[str]:
         # 1) check that all labels are different
-        labels_are_same, primary_label = self.__check_labels(data_set)
+        labels_are_same, primary_label = self.check_labels(data_set)
         if labels_are_same or depth >= self.max_depth or len(data_set) <= self.min_node_size:
             return [f"    tree{branch_chain} = Leaf('{primary_label}')"]
 
@@ -52,22 +63,24 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
         max_gain = 0
         for field in data_set[0].keys():
-            if field == self.label_name or not type(data_set[0][field]) in [int, float, bool]:
+            if field == self.label_name or not type(data_set[0][field]) in self.supported_field_types:
                 continue
             data_set.sort(key = lambda x: x.get(field))
             properties = list(map(lambda x: x[field], data_set))
             labels = list(map(lambda x: x[self.label_name], data_set))
-            gain, split_point = self.__calculate_max_gini_gain(labels, properties)
+            gain, split_point = self.calculate_max_gini_gain(labels, properties)
             if gain > max_gain:
                 max_gain = gain
                 value_to_split_by = split_point
                 field_to_split_by = field
 
         # 3) Perform the decision split
-        left_data_set, right_data_set = self.__split_data(data_set, field_to_split_by, value_to_split_by)
+        left_data_set, right_data_set = self.split_data(data_set, field_to_split_by, value_to_split_by)
 
         # 4) Create new Branch
-        file_additions.append(f"    tree{branch_chain} = Branch(lambda x: x['{field_to_split_by}'] <= {value_to_split_by})")
+        if field_to_split_by[:10] == "self.MATH_": # Correlated fields
+            value_to_split_by = field_to_split_by
+        file_additions.append(f"    tree{branch_chain} = Branch(lambda x: x{self.__field_access_prefix}{field_to_split_by}{self.__field_access_postfix} <= {value_to_split_by})")
 
         # 5) Recursively build new branches
         depth+=1
@@ -84,8 +97,27 @@ class DecisionTreeWriter: # TODO: make internal methods private
         file.close()
 
 
+    def find_correlations(self, data_set: List[Dict]) -> List[Dict]:
+        # 1 Get all fields we can work with
+        fields = list(filter(lambda x: type(data_set[0][x]) in self.supported_field_types, data_set[0].keys()))
+        
+        # 2 get all pairs
+        pairs = []
+        for i, field in enumerate(fields):
+            for other_field in fields[i+1:]:
+                pairs.append((field, other_field))
 
-    def __check_labels(self, data_set: List[Dict]) -> Tuple[bool, str]:
+        # 3 Add a field for the sum, diff, product, and quotient of each field.
+        for item in data_set:
+            for pair in pairs:
+                for func in [self.MATH__SUM, self.MATH_DIFF, self.MATH_PROD, self.MATH_QUOT]:
+                    # item key is the code to be written later
+                    item[f"self.{str(func)[33:42]}(lambda x: x{self.__field_access_prefix}{pair[0]}{self.__field_access_postfix}, lambda x: x{self.__field_access_prefix}{pair[1]}{self.__field_access_postfix})"] = func(item[pair[0]], item[pair[1]])      
+        
+        return data_set
+
+
+    def check_labels(self, data_set: List[Dict]) -> Tuple[bool, str]:
         counted_labels = dict()
         primary_label = None
         primary_label_count = 0
@@ -102,7 +134,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
         return len(counted_labels.keys()) == 1, primary_label        
 
 
-    def __split_data(self, data_set: List[Dict], field_to_split_by: str, value_to_split_by) -> Tuple[List[Dict], List[Dict]]:
+    def split_data(self, data_set: List[Dict], field_to_split_by: str, value_to_split_by) -> Tuple[List[Dict], List[Dict]]:
         left = []
         right = []
         for item in data_set:
@@ -114,11 +146,11 @@ class DecisionTreeWriter: # TODO: make internal methods private
         return left, right
 
 
-    def __calculate_max_gini_gain(self, labels: List[str], properties: List) -> Tuple[float, float]:
+    def calculate_max_gini_gain(self, labels: List[str], properties: List) -> Tuple[float, float]:
         if not (properties and labels) or len(properties) != len(labels): return 0
 
         max_gain = 0
-        H = self.__calculate_gini_impurity(labels)
+        H = self.calculate_gini_impurity(labels)
         l = len(labels)
         l1 = []
         l2 = list(labels)
@@ -129,8 +161,8 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
             if val == properties[i+1]: continue
 
-            H1 = self.__calculate_gini_impurity(l1) * len(l1) / l
-            H2 = self.__calculate_gini_impurity(l2) * len(l2) / l
+            H1 = self.calculate_gini_impurity(l1) * len(l1) / l
+            H2 = self.calculate_gini_impurity(l2) * len(l2) / l
             gain = H - H1 - H2
             if gain > max_gain:
                 max_gain = gain
@@ -139,7 +171,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
         return max_gain, value_to_split_by
 
 
-    def __calculate_gini_impurity(self, input: List) -> float:
+    def calculate_gini_impurity(self, input: List) -> float:
         """
         Returns the Gini impurity of input (0 means all of the items are the same, > 0.5 is pretty mixed)
         """
@@ -160,3 +192,19 @@ class DecisionTreeWriter: # TODO: make internal methods private
         
         s = round(s, 7) # resolves some weird rounding errors
         return s
+
+
+    # Same functions used by BaseDecisionTree for duck typing
+    def MATH__SUM(self, n1, n2) -> float:
+        return n1+n2
+    def MATH_DIFF(self, n1, n2) -> float:
+        return n1-n2
+    def MATH_PROD(self, n1, n2) -> float:
+        return n1*n2
+    def MATH_QUOT(self, n1, n2) -> float:
+        """Divides n1 by n2 but returns n1 * 2**128 if n2 is zero."""
+        if n2 == 0:
+            return n1*340282366920938463463374607431768211456 # 2**128
+        return n1+n2
+
+

@@ -1,6 +1,6 @@
 from BaseDecisionTree import *
 
-# class-like syntax because it acts like its instantiating a class.
+# class-like syntax because it acts like it's instantiating a class.
 def DecisionTreeModel__0391c9aa_3353_4a21_a215_7cb244169597() -> 'BaseDecisionTree':
     """
     DecisionTreeModel__0391c9aa_3353_4a21_a215_7cb244169597 has been trained to identify the species of a given dictionary object.

@@ -1,11 +1,11 @@
 from BaseDecisionTree import *
 
 # class-like syntax because it acts like it's instantiating a class.
-def DinoClassifyByOrderTree__cf5e3d7c_1df1_4a47_81e3_dce2d29dac4a() -> 'BaseDecisionTree':
+def Dino_ClassifyByOrder_AndLookForCorrelations_Tree__54de5e57_9d63_4b95_a232_072a382296d1() -> 'BaseDecisionTree':
     """
-    DinoClassifyByOrderTree__cf5e3d7c_1df1_4a47_81e3_dce2d29dac4a has been trained to identify the order of a given dictionary object.
+    Dino_ClassifyByOrder_AndLookForCorrelations_Tree__54de5e57_9d63_4b95_a232_072a382296d1 has been trained to identify the order of a given dictionary object.
     """
-    tree = BaseDecisionTree(None, dict, 'DinoClassifyByOrderTree__cf5e3d7c_1df1_4a47_81e3_dce2d29dac4a')
+    tree = BaseDecisionTree(None, dict, 'Dino_ClassifyByOrder_AndLookForCorrelations_Tree__54de5e57_9d63_4b95_a232_072a382296d1')
     tree.root = Branch(lambda x: x['fingers per hand'] <= 3.5)
     tree.root.l = Leaf('Therapod')
     tree.root.r = Branch(lambda x: x['neck length (feet)'] <= 7.5)

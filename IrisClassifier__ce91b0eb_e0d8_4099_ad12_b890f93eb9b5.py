@@ -1,6 +1,6 @@
 from BaseDecisionTree import *
 
-# class-like syntax because it acts like its instantiating a class.
+# class-like syntax because it acts like it's instantiating a class.
 def IrisClassifier__ce91b0eb_e0d8_4099_ad12_b890f93eb9b5() -> 'BaseDecisionTree':
     """
     IrisClassifier__ce91b0eb_e0d8_4099_ad12_b890f93eb9b5 has been trained to identify the species of a given dictionary object.
