@@ -13,7 +13,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
         self.label_name = label_name
 
 
-    def build_tree(self, data_set: List[Dict], tree_name: str = "DecisionTreeModel") -> None:
+    def build_tree(self, data_set: List[Dict or object], tree_name: str = "DecisionTreeModel") -> None:
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
         file = ["from BaseDecisionTree import *",
@@ -27,18 +27,23 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
         # TODO: 1) Add fields (key-value pairs) for combined basic fields
         # Not yet implemented
-        expandedDataSet = list(data_set)
+        expandedDataSet = []
+
+        if type(data_set[0]) != dict:
+            expandedDataSet = list(map(lambda x: x.__dict__, data_set))
+        else:
+            expandedDataSet = list(data_set)
 
         # 2) recursively build branches or leaves based on best fit
-        file += self.build_branch(expandedDataSet, 1, ".root")
+        file += self.__build_branch(expandedDataSet, 1, ".root")
 
         file += ["    ", "    return tree"]
-        self.write_tree_file(file_name, file)
+        self.__write_tree_file(file_name, file)
 
 
-    def build_branch(self, data_set: List[Dict], depth: int, branch_chain: str) -> List[str]:
+    def __build_branch(self, data_set: List[Dict], depth: int, branch_chain: str) -> List[str]:
         # 1) check that all labels are different
-        labels_are_same, primary_label = self.check_labels(data_set)
+        labels_are_same, primary_label = self.__check_labels(data_set)
         if labels_are_same or depth >= self.max_depth or len(data_set) <= self.min_node_size:
             return [f"    tree{branch_chain} = Leaf('{primary_label}')"]
 
@@ -52,27 +57,27 @@ class DecisionTreeWriter: # TODO: make internal methods private
             data_set.sort(key = lambda x: x.get(field))
             properties = list(map(lambda x: x[field], data_set))
             labels = list(map(lambda x: x[self.label_name], data_set))
-            gain, split_point = self.calculate_max_gini_gain(labels, properties)
+            gain, split_point = self.__calculate_max_gini_gain(labels, properties)
             if gain > max_gain:
                 max_gain = gain
                 value_to_split_by = split_point
                 field_to_split_by = field
 
         # 3) Perform the decision split
-        left_data_set, right_data_set = self.split_data(data_set, field_to_split_by, value_to_split_by)
+        left_data_set, right_data_set = self.__split_data(data_set, field_to_split_by, value_to_split_by)
 
         # 4) Create new Branch
         file_additions.append(f"    tree{branch_chain} = Branch(lambda x: x['{field_to_split_by}'] <= {value_to_split_by})")
 
         # 5) Recursively build new branches
         depth+=1
-        file_additions += self.build_branch(left_data_set, depth, f"{branch_chain}.l")
-        file_additions += self.build_branch(right_data_set, depth, f"{branch_chain}.r")
+        file_additions += self.__build_branch(left_data_set, depth, f"{branch_chain}.l")
+        file_additions += self.__build_branch(right_data_set, depth, f"{branch_chain}.r")
 
         return file_additions
 
     
-    def write_tree_file(self, file_name: str, lines: List[str]) -> None:
+    def __write_tree_file(self, file_name: str, lines: List[str]) -> None:
         file = open(f"{file_name}.py", "w")
         for line in lines:
             file.write(line+"\n")
@@ -80,7 +85,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
 
 
-    def check_labels(self, data_set: List[Dict]) -> Tuple[bool, str]:
+    def __check_labels(self, data_set: List[Dict]) -> Tuple[bool, str]:
         counted_labels = dict()
         primary_label = None
         primary_label_count = 0
@@ -97,7 +102,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
         return len(counted_labels.keys()) == 1, primary_label        
 
 
-    def split_data(self, data_set: List[Dict], field_to_split_by: str, value_to_split_by) -> Tuple[List[Dict], List[Dict]]:
+    def __split_data(self, data_set: List[Dict], field_to_split_by: str, value_to_split_by) -> Tuple[List[Dict], List[Dict]]:
         left = []
         right = []
         for item in data_set:
@@ -109,11 +114,11 @@ class DecisionTreeWriter: # TODO: make internal methods private
         return left, right
 
 
-    def calculate_max_gini_gain(self, labels: List[str], properties: List) -> Tuple[float, float]:
+    def __calculate_max_gini_gain(self, labels: List[str], properties: List) -> Tuple[float, float]:
         if not (properties and labels) or len(properties) != len(labels): return 0
 
         max_gain = 0
-        H = self.calculate_gini_impurity(labels)
+        H = self.__calculate_gini_impurity(labels)
         l = len(labels)
         l1 = []
         l2 = list(labels)
@@ -124,8 +129,8 @@ class DecisionTreeWriter: # TODO: make internal methods private
 
             if val == properties[i+1]: continue
 
-            H1 = self.calculate_gini_impurity(l1) * len(l1) / l
-            H2 = self.calculate_gini_impurity(l2) * len(l2) / l
+            H1 = self.__calculate_gini_impurity(l1) * len(l1) / l
+            H2 = self.__calculate_gini_impurity(l2) * len(l2) / l
             gain = H - H1 - H2
             if gain > max_gain:
                 max_gain = gain
@@ -134,7 +139,7 @@ class DecisionTreeWriter: # TODO: make internal methods private
         return max_gain, value_to_split_by
 
 
-    def calculate_gini_impurity(self, input: List) -> float:
+    def __calculate_gini_impurity(self, input: List) -> float:
         """
         Returns the Gini impurity of input (0 means all of the items are the same, > 0.5 is pretty mixed)
         """
