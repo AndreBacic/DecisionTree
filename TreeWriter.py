@@ -21,14 +21,16 @@ class DecisionTreeWriter:
     def build_tree(self, data_set: List[Dict or object], look_for_correlations: bool = True, tree_name: str = "DecisionTreeModel") -> None:
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
+
+        is_dict, data_type = ("dictionary ", "dict") if type(data_set) == dict else ("", "object")
         file = ["from BaseDecisionTree import *",
                 "",
                 "# class-like syntax because it acts like it's instantiating a class.",
                f"def {file_name}() -> 'BaseDecisionTree':",
                 '    """',
-               f"    {file_name} has been trained to identify the {self.label_name} of a given dictionary object.",
+               f"    {file_name} has been trained to identify the {self.label_name} of a given {is_dict}object.",
                 '    """',
-               f"    tree = BaseDecisionTree(None, dict, '{file_name}')"]
+               f"    tree = BaseDecisionTree(None, {data_type}, '{file_name}')"]
 
         # 1) Format data_set
         expanded_data_set = []
@@ -78,9 +80,10 @@ class DecisionTreeWriter:
         left_data_set, right_data_set = self.split_data(data_set, field_to_split_by, value_to_split_by)
 
         # 4) Create new Branch
-        if field_to_split_by[:10] == "self.MATH_": # Correlated fields
-            value_to_split_by = field_to_split_by
-        file_additions.append(f"    tree{branch_chain} = Branch(lambda x: x{self.__field_access_prefix}{field_to_split_by}{self.__field_access_postfix} <= {value_to_split_by})")
+        if field_to_split_by[:10] == "tree.MATH_": # Correlated fields       # field_to_split_by is already formatted code
+            file_additions.append(f"    tree{branch_chain} = Branch(lambda x: {field_to_split_by} <= {value_to_split_by})")
+        else:
+            file_additions.append(f"    tree{branch_chain} = Branch(lambda x: x{self.__field_access_prefix}{field_to_split_by}{self.__field_access_postfix} <= {value_to_split_by})")
 
         # 5) Recursively build new branches
         depth+=1
@@ -112,7 +115,7 @@ class DecisionTreeWriter:
             for pair in pairs:
                 for func in [self.MATH__SUM, self.MATH_DIFF, self.MATH_PROD, self.MATH_QUOT]:
                     # item key is the code to be written later
-                    item[f"self.{str(func)[33:42]}(lambda x: x{self.__field_access_prefix}{pair[0]}{self.__field_access_postfix}, lambda x: x{self.__field_access_prefix}{pair[1]}{self.__field_access_postfix})"] = func(item[pair[0]], item[pair[1]])      
+                    item[f"tree.{str(func)[33:42]}(x{self.__field_access_prefix}{pair[0]}{self.__field_access_postfix}, x{self.__field_access_prefix}{pair[1]}{self.__field_access_postfix})"] = func(item[pair[0]], item[pair[1]])      
         
         return data_set
 
