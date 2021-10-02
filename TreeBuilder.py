@@ -1,5 +1,5 @@
 from BaseDecisionTree import *
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import uuid
 from TreeWriter import DecisionTreeWriter
 
@@ -11,12 +11,20 @@ class DecisionTreeBuilder(DecisionTreeWriter):
         super().__init__(max_depth, min_node_size, label_name)
 
 
-    def build_tree(self, data_set: List[Dict], tree_name: str = "DecisionTreeModel") -> 'BaseDecisionTree':
+    def build_tree(self, data_set: List[Dict or object], look_for_correlations: bool = True, tree_name: str = "DecisionTreeModel") -> 'BaseDecisionTree':
         tree = BaseDecisionTree(None, dict, f"{tree_name}{uuid.uuid4()}")
 
-        # TODO: 1) Add fields (key-value pairs) for combined basic fields
-        # Not yet implemented
-        expanded_data_set = list(data_set)
+        # 1) Format data_set
+        expanded_data_set = []
+
+        if type(data_set[0]) != dict:
+            expanded_data_set = list(map(lambda x: x.__dict__, data_set))
+            tree.supported_data_type = object
+        else:
+            expanded_data_set = list(data_set)
+
+        if look_for_correlations:
+            expanded_data_set = self.find_correlations(expanded_data_set)
         
         # 2) recursively build branches or leaves based on best fit
         tree.root = self.__build_branch(expanded_data_set, 1)

@@ -65,5 +65,3 @@ writer = DecisionTreeWriter(min_node_size=1, max_depth=18)
 t = time.time()
 writer.build_tree(shapes, True,"ShapesCorrelationsTree3")
 print(time.time()-t)
-# builder.label_name = "order"
-# builder.build_tree(Dinosaurs)
