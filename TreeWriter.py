@@ -16,9 +16,26 @@ class DecisionTreeWriter:
 
         self.__field_access_prefix = "."
         self.__field_access_postfix = ""
+        
+        self.__default_tree_model_folder = "tree_models"
 
 
-    def build_tree(self, data_set: List[Dict or object], look_for_correlations: bool = True, tree_name: str = "DecisionTreeModel") -> None:
+    def build_tree(self, data_set: List[Dict or object],
+                         look_for_correlations: bool = True, 
+                         tree_name: str = "DecisionTreeModel",
+                         file_folder: str = None) -> None:
+        """
+        self trains a decision tree to classify items of the type of items in data_set by its key/field self.label_name,
+        and then writes the code for the new decision tree model to file_folder/tree_name__newUuid.py.
+
+        look_for_correlations is whether or not the tree should be trained to look for simple relationships between all 
+        possible pairs of the data items' fields. Setting this value to True can create a much better tree but can also take
+        much longer to run. (if F is the number of a data item's fields, time and space complexity grow by O(F^2), as opposed to O(F))
+        
+        O of time: O(len(data_set)^2 * log2(len(data_set))) = O(n^2 * log2(n)) <- (best and probably average cases, worst is O(n^3))
+        O of space: O(n)
+        """
+        
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
 
@@ -51,10 +68,20 @@ class DecisionTreeWriter:
         file += self.__build_branch(expanded_data_set, 1, ".root")
 
         file += ["    ", "    return tree"]
-        self.__write_tree_file(file_name, file)
+
+        if not file_folder: file_folder = self.__default_tree_model_folder
+        self.__write_tree_file(file_name, file, file_folder)
 
 
     def __build_branch(self, data_set: List[Dict], depth: int, branch_chain: str) -> List[str]:
+        """
+        Recursively writes and returns a list of lines of code that define this branch of a decision tree.
+        The list could be as small as the code for adding a Leaf, which just holds a label (a final decision)
+        or it could define up to thousands of decision Branches, terminating in even more Leaves.
+        
+        O of time: O(n^2 * log(n)) <- (best and probably average cases, worst is O(n^3))
+        O of space: O(n * log(n)) <- (best and probably average cases, worst is O(n^2))
+        """
         # 1) check that all labels are different
         labels_are_same, primary_label = self.check_labels(data_set)
         if labels_are_same or depth >= self.max_depth or len(data_set) <= self.min_node_size:
@@ -68,9 +95,9 @@ class DecisionTreeWriter:
             if field == self.label_name or not type(data_set[0][field]) in self.supported_field_types:
                 continue
             data_set.sort(key = lambda x: x.get(field))
-            properties = list(map(lambda x: x[field], data_set))
+            fields = list(map(lambda x: x[field], data_set))
             labels = list(map(lambda x: x[self.label_name], data_set))
-            gain, split_point = self.calculate_max_gini_gain(labels, properties)
+            gain, split_point = self.calculate_max_gini_gain(labels, fields)
             if gain > max_gain:
                 max_gain = gain
                 value_to_split_by = split_point
@@ -93,14 +120,26 @@ class DecisionTreeWriter:
         return file_additions
 
     
-    def __write_tree_file(self, file_name: str, lines: List[str]) -> None:
-        file = open(f"{file_name}.py", "w")
+    def __write_tree_file(self, file_name: str, lines: List[str], file_folder: str = None) -> None:
+        """
+        Writes all lines in lines to a new file named file_name.py in file_folder.
+        """
+        if not file_folder: file_folder = self.__default_tree_model_folder
+
+        file = open(f"{file_folder}/{file_name}.py", "w")
         for line in lines:
             file.write(line+"\n")
         file.close()
 
 
     def find_correlations(self, data_set: List[Dict]) -> List[Dict]:
+        """
+        Mutates and returns data_set after adding to it several new key-value pairs for each possible pair combinations of its fields,
+        adding one pair of each combination for each basic math operation.
+        
+        O of time: O(len(data_set) * how_many_fields_are_in_an_item_in_data_set) = O(nF) = O(n)
+        O of space: O(how_many_fields_are_in_an_item_in_data_set^2) = O(1)
+        """
         # 1 Get all fields we can work with
         fields = list(filter(lambda x: type(data_set[0][x]) in self.supported_field_types, data_set[0].keys()))
         
@@ -121,6 +160,14 @@ class DecisionTreeWriter:
 
 
     def check_labels(self, data_set: List[Dict]) -> Tuple[bool, str]:
+        """
+        Checks if all of the labels of the items in data_set are the same.
+        
+        Returns if they are all the same, and what the most frequent label is.
+        
+        O of time: O(len(data_set)) = O(n)
+        O of space: Worst case O(n), best is O(1) and average is probably O(log(n)), but that depends on data_set.
+        """
         counted_labels = dict()
         primary_label = None
         primary_label_count = 0
@@ -138,6 +185,12 @@ class DecisionTreeWriter:
 
 
     def split_data(self, data_set: List[Dict], field_to_split_by: str, value_to_split_by) -> Tuple[List[Dict], List[Dict]]:
+        """
+        Splits data_set into two new lists, separating all items into the first list where field_to_split_by <= value_to_split_by, and the rest into the second.
+
+        O of time: O(len(data_set)) = O(n)
+        O of space: O(n)
+        """
         left = []
         right = []
         for item in data_set:
@@ -149,8 +202,20 @@ class DecisionTreeWriter:
         return left, right
 
 
-    def calculate_max_gini_gain(self, labels: List[str], properties: List) -> Tuple[float, float]:
-        if not (properties and labels) or len(properties) != len(labels): return 0
+    def calculate_max_gini_gain(self, labels: List[str], fields: List) -> Tuple[float, float]:
+        """
+        Determines at what value in between some items of fields a data list should be split
+        to minimize the gini impurity of the labels of the data list.
+
+        fields must be sorted in ascending order and the labels sorted to match each field of the same index.
+
+        Returns the maximum gini gain obtainable by spliting the data list by the given field, and what value of
+        that field to split by.
+
+        O of time: O(len(labels)*len(fields)), and since those lengths are equal that's O(n^2)
+        O of space: O(n) <- ( O(len(labels)) )
+        """
+        if not (fields and labels) or len(fields) != len(labels): return 0
 
         max_gain = 0
         H = self.calculate_gini_impurity(labels)
@@ -158,18 +223,18 @@ class DecisionTreeWriter:
         l1 = []
         l2 = list(labels)
         value_to_split_by = None
-        for i, val in enumerate(properties):
+        for i, val in enumerate(fields):
             l1.append(l2.pop(0))
             if len(l2) == 0: break
 
-            if val == properties[i+1]: continue
+            if val == fields[i+1]: continue
 
             H1 = self.calculate_gini_impurity(l1) * len(l1) / l
             H2 = self.calculate_gini_impurity(l2) * len(l2) / l
             gain = H - H1 - H2
             if gain > max_gain:
                 max_gain = gain
-                value_to_split_by = (val + properties[i+1])/2
+                value_to_split_by = (val + fields[i+1])/2
         
         return max_gain, value_to_split_by
 
@@ -177,6 +242,9 @@ class DecisionTreeWriter:
     def calculate_gini_impurity(self, input: List) -> float:
         """
         Returns the Gini impurity of input (0 means all of the items are the same, > 0.5 is pretty mixed)
+
+        O of time: O(n)
+        O of space: O(how_many_different_labels_are_in_input), which is at worst O(n) and at best O(1), and in practice probably O(log(n))
         """
         # return 1 - Sum from i=1 to n of (Probability(Xi)**2)
         if not input: return 0.0
