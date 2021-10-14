@@ -15,7 +15,9 @@ class DecisionTreeWriter:
         self.supported_field_types = [int, float, bool]
 
         self.__field_access_prefix = "."
-        self.__field_access_postfix = ""        
+        self.__field_access_postfix = ""
+
+        self.math_funcs = [self.MATH___EQ, self.MATH__SUM, self.MATH_DIFF, self.MATH_PROD, self.MATH_QUOT]
 
 
     def write_tree(self, data_set: List[Dict or object],
@@ -37,6 +39,7 @@ class DecisionTreeWriter:
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
 
+        # TODO: make file writer import the object's class, if necessary.
         is_dict, data_type = ("dictionary ", "dict") if type(data_set) == dict else ("", str(data_set[0].__class__.__name__))
         file = ["from BaseDecisionTree import *",
                 "",
@@ -129,7 +132,7 @@ class DecisionTreeWriter:
         try:
             file = open(f"{file_folder}{file_name}.py", "w")
         except FileNotFoundError:
-            print(f"Error: file folder {file_folder} was not found. Stopping code excecution.")
+            print(f"Error: file folder {file_folder} was not found. Stopping code execution.")
             quit()
 
         for line in lines:
@@ -157,7 +160,7 @@ class DecisionTreeWriter:
         # 3 Add a field for the sum, diff, product, and quotient of each field.
         for item in data_set:
             for pair in pairs:
-                for func in [self.MATH__SUM, self.MATH_DIFF, self.MATH_PROD, self.MATH_QUOT]:
+                for func in self.math_funcs:
                     # item key is the code to be written later
                     item[f"tree.{func.__name__}(x{self.__field_access_prefix}{pair[0]}{self.__field_access_postfix}, x{self.__field_access_prefix}{pair[1]}{self.__field_access_postfix})"] = func(item[pair[0]], item[pair[1]])      
         
@@ -270,7 +273,9 @@ class DecisionTreeWriter:
         return s
 
 
-    # Same functions used by BaseDecisionTree for duck typing
+    # Same functions used by BaseDecisionTree for duck typing    
+    def MATH___EQ(self, n1, n2) -> float:
+        return float(n1 == n2)
     def MATH__SUM(self, n1, n2) -> float:
         return n1+n2
     def MATH_DIFF(self, n1, n2) -> float:
@@ -282,5 +287,3 @@ class DecisionTreeWriter:
         if n2 == 0:
             return n1*340282366920938463463374607431768211456 # 2**128
         return n1+n2
-
-

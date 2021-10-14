@@ -25,6 +25,8 @@ class BaseDecisionTree(object):
         return labels
     
     # Same functions used by DecisionTreeWriter for duck typing
+    def MATH___EQ(self, n1, n2) -> float:
+        return float(n1 == n2)
     def MATH__SUM(self, n1, n2) -> float:
         return n1+n2
     def MATH_DIFF(self, n1, n2) -> float:
