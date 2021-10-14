@@ -15,12 +15,10 @@ class DecisionTreeWriter:
         self.supported_field_types = [int, float, bool]
 
         self.__field_access_prefix = "."
-        self.__field_access_postfix = ""
-        
-        self.__default_tree_model_folder = "tree_models"
+        self.__field_access_postfix = ""        
 
 
-    def build_tree(self, data_set: List[Dict or object],
+    def write_tree(self, data_set: List[Dict or object],
                          look_for_correlations: bool = True, 
                          tree_name: str = "DecisionTreeModel",
                          file_folder: str = None) -> None:
@@ -39,7 +37,7 @@ class DecisionTreeWriter:
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
 
-        is_dict, data_type = ("dictionary ", "dict") if type(data_set) == dict else ("", "object")
+        is_dict, data_type = ("dictionary ", "dict") if type(data_set) == dict else ("", str(data_set[0].__class__.__name__))
         file = ["from BaseDecisionTree import *",
                 "",
                 "# class-like syntax because it acts like it's instantiating a class.",
@@ -69,7 +67,7 @@ class DecisionTreeWriter:
 
         file += ["    ", "    return tree"]
 
-        if not file_folder: file_folder = self.__default_tree_model_folder
+        
         self.__write_tree_file(file_name, file, file_folder)
 
 
@@ -124,9 +122,16 @@ class DecisionTreeWriter:
         """
         Writes all lines in lines to a new file named file_name.py in file_folder.
         """
-        if not file_folder: file_folder = self.__default_tree_model_folder
+        if file_folder: file_folder += "/"
+        else: file_folder = ""
+        
+        file = None
+        try:
+            file = open(f"{file_folder}{file_name}.py", "w")
+        except FileNotFoundError:
+            print(f"Error: file folder {file_folder} was not found. Stopping code excecution.")
+            quit()
 
-        file = open(f"{file_folder}/{file_name}.py", "w")
         for line in lines:
             file.write(line+"\n")
         file.close()
@@ -154,7 +159,7 @@ class DecisionTreeWriter:
             for pair in pairs:
                 for func in [self.MATH__SUM, self.MATH_DIFF, self.MATH_PROD, self.MATH_QUOT]:
                     # item key is the code to be written later
-                    item[f"tree.{str(func)[33:42]}(x{self.__field_access_prefix}{pair[0]}{self.__field_access_postfix}, x{self.__field_access_prefix}{pair[1]}{self.__field_access_postfix})"] = func(item[pair[0]], item[pair[1]])      
+                    item[f"tree.{func.__name__}(x{self.__field_access_prefix}{pair[0]}{self.__field_access_postfix}, x{self.__field_access_prefix}{pair[1]}{self.__field_access_postfix})"] = func(item[pair[0]], item[pair[1]])      
         
         return data_set
 
@@ -231,8 +236,8 @@ class DecisionTreeWriter:
 
             H1 = self.calculate_gini_impurity(l1) * len(l1) / l
             H2 = self.calculate_gini_impurity(l2) * len(l2) / l
-            gain = H - H1 - H2
-            if gain > max_gain:
+            gain = round(H - H1 - H2, 7)
+            if gain > max_gain or (gain == max_gain and i < l/2): # second case motivates the alg to split in the middle
                 max_gain = gain
                 value_to_split_by = (val + fields[i+1])/2
         

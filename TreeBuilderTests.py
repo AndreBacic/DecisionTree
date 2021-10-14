@@ -22,6 +22,10 @@ def calculate_max_gini_gain_Should_work(): # It works!
     print(builder.calculate_max_gini_gain(["s", "c"], [1, 2]), "Should Be", (0.5, 1.5))
     print(builder.calculate_max_gini_gain(["s", "s", "c"], [1, 2, 8]), "Should Be", (0.4444444, 5))
     print(builder.calculate_max_gini_gain(["s", "h", "s", "c", "h"], [1, 2, 2, 8, 15]), "Should Be", (0.1733333, 5))
+    print(builder.calculate_max_gini_gain(["a", "b", "c", "d"], 
+                                          [1, 2, 3, 4]), "Should Be", (0.25, 2.5))
+    print(builder.calculate_max_gini_gain(["a", "a", "b", "b", "c", "c", "d", "d", "e", "e"], 
+                                          [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]), "Should Be", (0.2, 4.5))
 
 def split_data_Should_work(): # It works!
     data = [{
@@ -63,5 +67,5 @@ def build_tree_Should_work(): # It works with the old way that returns a BaseDec
 
 writer = DecisionTreeWriter(min_node_size=1, max_depth=18)
 t = time.time()
-writer.build_tree(shapes, True,"ShapesCorrelationsTree3")
+writer.write_tree(shapes, True,"ShapesCorrelationsTree3")
 print(time.time()-t)
