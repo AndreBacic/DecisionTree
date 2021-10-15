@@ -1,17 +1,17 @@
 
-Spinosaurus = {"order": "Therapod", "species": "Spinosaurus",
+Spinosaurus = {"order": "Theropod", "species": "Spinosaurus",
             "length (feet)": 52, "height (feet)": 22, "neck length (feet)": 7, "diet 0-🌿, .5-🥚, 1-🥩": 1, "is bipedal": 0.2,
             "head length (feet)": 6, "horns": 0, "toes per foot": 3, "fingers per hand": 3, "back spikes/plates": 1, "tail spikes/bludgeons": 0}
 
-Oviraptor = {"order": "Therapod", "species": "Oviraptor",
+Oviraptor = {"order": "Theropod", "species": "Oviraptor",
             "length (feet)": 5, "height (feet)": 1.5, "neck length (feet)": 1, "diet 0-🌿, .5-🥚, 1-🥩": 0.5, "is bipedal": 1,
             "head length (feet)": 0.5, "horns": 1, "toes per foot": 3, "fingers per hand": 3, "back spikes/plates": 0, "tail spikes/bludgeons": 0}
 
-Therizinosaurus = {"order": "Therapod", "species": "Therizinosaurus",
+Therizinosaurus = {"order": "Theropod", "species": "Therizinosaurus",
             "length (feet)": 32, "height (feet)": 11, "neck length (feet)": 10, "diet 0-🌿, .5-🥚, 1-🥩": 0, "is bipedal": 1,
             "head length (feet)": 2, "horns": 0, "toes per foot": 3, "fingers per hand": 3, "back spikes/plates": 0, "tail spikes/bludgeons": 0}
 
-Tyrannosaurus = {"order": "Therapod", "species": "Tyrannosaurus",
+Tyrannosaurus = {"order": "Theropod", "species": "Tyrannosaurus",
             "length (feet)": 41, "height (feet)": 14, "neck length (feet)": 3, "diet 0-🌿, .5-🥚, 1-🥩": 1, "is bipedal": 1,
             "head length (feet)": 5, "horns": 0, "toes per foot": 3, "fingers per hand": 2, "back spikes/plates": 0, "tail spikes/bludgeons": 0}
 

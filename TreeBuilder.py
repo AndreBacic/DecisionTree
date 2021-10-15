@@ -34,6 +34,7 @@ class DecisionTreeBuilder(DecisionTreeWriter):
             expanded_data_set = list(data_set)
 
         if look_for_correlations:
+            # TODO: Make this actually work
             expanded_data_set = self.find_correlations(expanded_data_set)
         
         # 2) recursively build branches or leaves based on best fit

@@ -11,6 +11,9 @@ class BaseDecisionTree(object):
         self.name = name
     
     def classify_one(self, obj) -> str:
+        """
+        Returns what self thinks is the correct label for obj based on the data self has been trained by.
+        """
         if not isinstance(obj, self.supported_data_type): return None
 
         return self.root.classify(obj)
@@ -25,15 +28,15 @@ class BaseDecisionTree(object):
         return labels
     
     # Same functions used by DecisionTreeWriter for duck typing
-    def MATH___EQ(self, n1, n2) -> float:
+    def MATH_EQUALS(self, n1, n2) -> float:
         return float(n1 == n2)
-    def MATH__SUM(self, n1, n2) -> float:
+    def MATH_SUM(self, n1, n2) -> float:
         return n1+n2
-    def MATH_DIFF(self, n1, n2) -> float:
+    def MATH_DIFFERENCE(self, n1, n2) -> float:
         return n1-n2
-    def MATH_PROD(self, n1, n2) -> float:
+    def MATH_PRODUCT(self, n1, n2) -> float:
         return n1*n2
-    def MATH_QUOT(self, n1, n2) -> float:
+    def MATH_QUOTIENT(self, n1, n2) -> float:
         """Divides n1 by n2 but returns n1 * 2**128 if n2 is zero."""
         if n2 == 0:
             return n1*340282366920938463463374607431768211456 # 2**128

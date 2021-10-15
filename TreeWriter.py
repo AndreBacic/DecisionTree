@@ -1,6 +1,6 @@
 from BaseDecisionTree import *
 from typing import Dict, List, Tuple
-import uuid, math
+import uuid
 
 class DecisionTreeWriter:
     """
@@ -8,7 +8,7 @@ class DecisionTreeWriter:
     and then saves it to a new .py file as a class extending BaseDecisionTree
     """
     def __init__(self, max_depth: int = 998, min_node_size: int = 1, label_name = "LABEL") -> None:
-        self.max_depth = abs(max_depth)
+        self.max_depth = max_depth
         self.min_node_size = abs(min_node_size)
         self.label_name = label_name
 
@@ -17,10 +17,10 @@ class DecisionTreeWriter:
         self.__field_access_prefix = "."
         self.__field_access_postfix = ""
 
-        self.math_funcs = [self.MATH___EQ, self.MATH__SUM, self.MATH_DIFF, self.MATH_PROD, self.MATH_QUOT]
+        self.math_funcs = [self.MATH_EQUALS, self.MATH_SUM, self.MATH_DIFFERENCE, self.MATH_PRODUCT, self.MATH_QUOTIENT]
 
 
-    def write_tree(self, data_set: List[Dict or object],
+    def write_tree(self, data_set: List[Dict or object], # TODO: Validate that all of the items in data_set have the same keys/attributes
                          look_for_correlations: bool = True, 
                          tree_name: str = "DecisionTreeModel",
                          file_folder: str = None) -> None:
@@ -266,22 +266,29 @@ class DecisionTreeWriter:
         
         s = 1.0
         for i in probs.values():
-            s -= i*i # retrns the negative of the sum, so just minus each time.
+            s -= i*i # returns the negative of the sum, so just minus each time.
         
         s = round(s, 7) # resolves some weird rounding errors
         return s
 
+    def get_max_depth(self):
+        return self.__max_depth
+    def set_max_depth(self, val: int):
+        if val > 998: val = 998
+        elif val < 1: val = 1
+        self.__max_depth = val
 
-    # Same functions used by BaseDecisionTree for duck typing    
-    def MATH___EQ(self, n1, n2) -> float:
+
+    # Same functions used by BaseDecisionTree for duck typing
+    def MATH_EQUALS(self, n1, n2) -> float:
         return float(n1 == n2)
-    def MATH__SUM(self, n1, n2) -> float:
+    def MATH_SUM(self, n1, n2) -> float:
         return n1+n2
-    def MATH_DIFF(self, n1, n2) -> float:
+    def MATH_DIFFERENCE(self, n1, n2) -> float:
         return n1-n2
-    def MATH_PROD(self, n1, n2) -> float:
+    def MATH_PRODUCT(self, n1, n2) -> float:
         return n1*n2
-    def MATH_QUOT(self, n1, n2) -> float:
+    def MATH_QUOTIENT(self, n1, n2) -> float:
         """Divides n1 by n2 but returns n1 * 2**128 if n2 is zero."""
         if n2 == 0:
             return n1*340282366920938463463374607431768211456 # 2**128
