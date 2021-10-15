@@ -132,9 +132,8 @@ class DecisionTreeWriter:
         try:
             file = open(f"{file_folder}{file_name}.py", "w")
         except FileNotFoundError:
-            print(f"Error: file folder {file_folder} was not found. Stopping code execution.")
-            quit()
-
+            raise FileNotFoundError(f"Error: file folder {file_folder} was not found.")
+            
         for line in lines:
             file.write(line+"\n")
         file.close()
