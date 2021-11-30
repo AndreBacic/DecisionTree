@@ -9,7 +9,7 @@ class DecisionTreeWriter:
     """
     def __init__(self, max_depth: int = 998, min_node_size: int = 1, label_name = "LABEL") -> None:
         self.max_depth = max_depth
-        self.min_node_size = abs(min_node_size)
+        self.min_node_size = min_node_size
         self.label_name = label_name
 
         self.supported_field_types = [int, float, bool]
@@ -35,6 +35,8 @@ class DecisionTreeWriter:
         O of time: O(len(data_set)^2 * log2(len(data_set))) = O(n^2 * log2(n)) <- (best and probably average cases, worst is O(n^3))
         O of space: O(n)
         """
+        
+        tree_name = tree_name.replace(" ","")
         
         guid = str(uuid.uuid4()).replace('-', '_')
         file_name = f"{tree_name}__{guid}"
@@ -277,6 +279,14 @@ class DecisionTreeWriter:
         if val > 998: val = 998
         elif val < 1: val = 1
         self.__max_depth = val
+    max_depth = property(get_max_depth, set_max_depth)
+
+    def __get_min_node_size(self):
+        return self.__min_node_size
+    def __set_min_node_size(self, val: int):
+        if val < 1: val = 1
+        self.__min_node_size = val
+    max_depth = property(__get_min_node_size, __set_min_node_size)
 
 
     # Same functions used by BaseDecisionTree for duck typing
